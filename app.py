@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 import os
+import csv  # Added for quoting fix
 
 # Page config
 st.set_page_config(page_title="Spotify Analyzer", page_icon="🎵", layout="wide")
@@ -17,10 +18,16 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 @st.cache_data
-def load_data(csv_path="full_cleaned_spotify_history.csv"):
-    """Load the cleaned CSV."""
+def load_data(csv_path="data/full_cleaned_spotify_history.csv"):
+    """Load the cleaned CSV with robust parsing."""
     if os.path.exists(csv_path):
-        df = pd.read_csv(csv_path, parse_dates=['end_time', 'start_time'])
+        # Fixed: Use QUOTE_ALL to handle unquoted commas in fields like platform
+        df = pd.read_csv(
+            csv_path, 
+            parse_dates=['end_time', 'start_time'], 
+            quoting=csv.QUOTE_ALL,  # Force all fields as quoted
+            low_memory=False  # For large CSVs
+        )
         df['date'] = pd.to_datetime(df['date']).dt.date
         return df
     else:
