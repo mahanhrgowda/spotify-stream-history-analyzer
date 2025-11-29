@@ -18,7 +18,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 @st.cache_data
-def load_data(csv_path="full_cleaned_spotify_history.csv"):
+def load_data(csv_path="dataset.csv"):
     """Load the simplified Spotify CSV with derived columns."""
     if not os.path.exists(csv_path):
         st.error("CSV not found! Place full_clean_spotify_data.csv in the repo root.")
