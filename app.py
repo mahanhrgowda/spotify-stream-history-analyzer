@@ -106,4 +106,143 @@ def find_times_by_song(df, track_name, artist_name):
     if df.empty:
         return pd.DataFrame()
     matches = df[(df['track'].str.contains(track_name, case=False, na=False)) & 
-                 (df['artist'].str.contains(artist_name, case=False
+                 (df['artist'].str.contains(artist_name, case=False, na=False))]
+    return matches[['end_time', 'ms_played', 'skipped']].sort_values('end_time') if not matches.empty else pd.DataFrame()
+
+def main():
+    st.title("🎵 Spotify Streaming Time Machine 🎵")
+    st.markdown("Dive into your streams. Total vibe time: Loaded dynamically!")
+    
+    df = load_data()
+    if df.empty:
+        st.stop()
+    
+    stats = calculate_stats(df)
+    
+    # Sidebar filters
+    st.sidebar.header("Filters")
+    if not df.empty:
+        date_range = st.sidebar.date_input("Date Range", value=(df['date'].min(), df['date'].max()))
+        filtered_df = df[(df['date'] >= date_range[0]) & (df['date'] <= date_range[1])].copy()
+    else:
+        filtered_df = pd.DataFrame()
+    filtered_stats = calculate_stats(filtered_df)
+    
+    # Metrics
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
+        st.metric("Total Hours", f"{filtered_stats.get('total_hours', 0):.1f}")
+        st.markdown('</div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown('<div class="metric-container">', unsafe_allow_html=True)
+        st.metric("Skip Rate", f"{filtered_stats.get('skip_rate', 0):.1f}%")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Interactive Feature
+    st.subheader("🕰️ Time Travel: Song Lookup")
+    tab1, tab2 = st.tabs(["Date/Time → Song", "Song → Play Times"])
+    
+    with tab1:
+        if filtered_df.empty:
+            st.warning("Load data first!")
+        else:
+            st.markdown("Enter a UTC date/time to find what was playing.")
+            col_dt1, col_dt2 = st.columns(2)
+            with col_dt1:
+                selected_date = st.date_input("Date", value=datetime.now().date())
+            with col_dt2:
+                selected_time = st.time_input("Time (UTC)", value=datetime.now().time())
+            target_dt = datetime.combine(selected_date, selected_time)
+            
+            if st.button("Find Song"):
+                closest = find_song_by_datetime(filtered_df, target_dt)
+                if closest is not None:
+                    st.success(f"**{closest['track']}** by **{closest['artist']}** (Album: {closest.get('album', 'N/A')})")
+                    st.info(f"Played: {closest['start_time']} to {closest['end_time']} ({closest['ms_played']/1000:.0f}s)")
+                    if closest.get('skipped', False):
+                        st.warning("💨 Skipped!")
+                    # Spotify URI not in CSV, skip
+                else:
+                    st.warning("No streams found nearby. Try a different time!")
+    
+    with tab2:
+        if filtered_df.empty:
+            st.warning("Load data first!")
+        else:
+            st.markdown("Search for a song to see when you played it.")
+            track_input = st.text_input("Track Name", placeholder="e.g., Beggin'")
+            artist_input = st.text_input("Artist", placeholder="e.g., Madcon")
+            
+            if st.button("Find Play Times") and track_input and artist_input:
+                matches = find_times_by_song(filtered_df, track_input, artist_input)
+                if not matches.empty:
+                    st.success(f"Found {len(matches)} plays for '{track_input}' by '{artist_input}'.")
+                    fig = px.timeline(matches, x_start="end_time", x_end="end_time", y=matches.index, 
+                                      title="Play Timeline", hover_data=['ms_played', 'skipped'])
+                    st.plotly_chart(fig, use_container_width=True)
+                    st.dataframe(matches)
+                else:
+                    st.warning("No matches found. Check spelling!")
+    
+    # Fun Facts
+    if filtered_stats:
+        st.subheader("🎉 Fun Facts")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f'<div class="fun-fact">Vibed {filtered_stats["total_hours"]:.0f} hrs – enough for {filtered_stats["total_hours"]/24:.1f} days!</div>', unsafe_allow_html=True)
+        with col2:
+            if not filtered_stats['longest_session'].empty:
+                longest_date = filtered_stats['longest_session']['date']
+                longest_min = filtered_stats['longest_session']['ms_played'] / 60000
+                st.markdown(f'<div class="fun-fact">Epic day: {longest_date} ({longest_min:.0f} mins!)</div>', unsafe_allow_html=True)
+        with col3:
+            st.markdown(f'<div class="fun-fact">Skipped {filtered_stats["skip_rate"]:.0f}% – DJ mode activated? 🎧</div>', unsafe_allow_html=True)
+    
+    # Visualizations
+    if filtered_stats:
+        st.subheader("📊 Groove Charts")
+        tab_v1, tab_v2, tab_v3, tab_v4 = st.tabs(["Top Tracks", "Top Artists", "Monthly Vibes", "Platforms"])
+        
+        with tab_v1:
+            if not filtered_stats['top_tracks'].empty:
+                fig = px.bar(filtered_stats['top_tracks'], x='hours_played', y='track', orientation='h', 
+                             title="Top 10 Bangers", color='hours_played', color_continuous_scale='viridis')
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No data for charts yet.")
+        
+        with tab_v2:
+            if not filtered_stats['top_artists'].empty:
+                fig = px.pie(filtered_stats['top_artists'], values='hours_played', names='artist', title="Artist Pie")
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No data for charts yet.")
+        
+        with tab_v3:
+            if not filtered_stats['top_months'].empty:
+                fig = px.line(filtered_stats['top_months'], x='month_year', y='hours_played', title="Peak Months")
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No data for charts yet.")
+        
+        with tab_v4:
+            if not filtered_stats['platform_usage'].empty:
+                fig = px.bar(filtered_stats['platform_usage'], title="Stream Spots")
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No data for charts yet.")
+    
+    # Export
+    if not filtered_df.empty:
+        csv_export = filtered_df.to_csv(index=False, quoting=csv.QUOTE_ALL).encode('utf-8')
+        st.download_button("📥 Download Filtered CSV", csv_export, "filtered_spotify_history.csv", "text/csv")
+    
+    with st.expander("Data Preview"):
+        if not filtered_df.empty:
+            st.dataframe(filtered_df.head(50))
+        else:
+            st.info("No data loaded.")
+
+if __name__ == "__main__":
+    main()
