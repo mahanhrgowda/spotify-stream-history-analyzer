@@ -18,7 +18,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 @st.cache_data
-def load_data(csv_path="data/full_cleaned_spotify_history.csv"):
+def load_data(csv_path="full_cleaned_spotify_history.csv"):
     """Load the cleaned CSV with robust parsing."""
     if os.path.exists(csv_path):
         # Fixed: Use QUOTE_ALL to handle unquoted commas in fields like platform
