@@ -20,17 +20,24 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 @st.cache_data
-def load_data(csv_path="dataset.csv"):
+def load_data(csv_path="data/full_cleaned_spotify_history.csv"):
     """Load the cleaned CSV."""
     if os.path.exists(csv_path):
-        df = pd.read_csv(csv_path, parse_dates=['end_time', 'start_time'])
-        df['date'] = pd.to_datetime(df['date']).dt.date
-        # Ensure end_time is timezone-aware UTC
-        df['end_time'] = pd.to_datetime(df['end_time'], utc=True)
-        df['start_time'] = pd.to_datetime(df['start_time'], utc=True)
-        return df
+        try:
+            df = pd.read_csv(csv_path, parse_dates=['end_time', 'start_time'])
+            df['date'] = pd.to_datetime(df['date']).dt.date
+            # Ensure end_time is timezone-aware UTC
+            df['end_time'] = pd.to_datetime(df['end_time'], utc=True)
+            df['start_time'] = pd.to_datetime(df['start_time'], utc=True)
+            return df
+        except pd.errors.EmptyDataError:
+            st.error("CSV file is empty! Please ensure the file has data.")
+            return pd.DataFrame()
+        except pd.errors.ParserError:
+            st.error("Invalid CSV format! Please check the file structure.")
+            return pd.DataFrame()
     else:
-        st.error("CSV not found! Place full_cleaned_spotify_history.csv in data/.")
+        st.error(f"CSV not found! Please place full_cleaned_spotify_history.csv in the data/ directory.")
         return pd.DataFrame()
 
 def calculate_stats(df):
