@@ -8,7 +8,7 @@ import pytz  # Add for timezone handling
 import random  # For fun random features
 
 # Page config
-st.set_page_config(page_title="Spotify Analyzer", page_icon="🎵", layout="wide")
+st.set_page_config(page_title="Spotify Analyzer", page_icon="\u1f3b5", layout="wide")
 
 # Custom CSS
 st.markdown("""
@@ -85,10 +85,10 @@ def find_times_by_song(df, track_name, artist_name):
 # New fun feature: Get random fun fact
 def get_random_fun_fact(stats):
     facts = [
-        f"You've grooved for {stats['total_hours']:.0f} hours – that's like binge-watching {stats['total_hours']/24:.0f} full days of Netflix! 📺",
-        f"Top banger alert: {stats['top_tracks'].iloc[0]['track']} by {stats['top_tracks'].iloc[0]['artist']} owns your playlist! 🔥",
-        f"Skip master: {stats['skip_rate']:.0f}% skips mean you're curating like a pro DJ. No filler allowed! 🎛️",
-        "Fun stat: Your longest jam session could power a small concert. Encore? 🎤"
+        f"You've grooved for {stats['total_hours']:.0f} hours \u2013 that's like binge-watching {stats['total_hours']/24:.0f} full days of Netflix! \u1f4fa",
+        f"Top banger alert: {stats['top_tracks'].iloc[0]['track']} by {stats['top_tracks'].iloc[0]['artist']} owns your playlist! \u1f525",
+        f"Skip master: {stats['skip_rate']:.0f}% skips mean you're curating like a pro DJ. No filler allowed! \u1f39b\ufe0f",
+        "Fun stat: Your longest jam session could power a small concert. Encore? \u1f3a4"
     ]
     return random.choice(facts)
 
@@ -102,8 +102,8 @@ def suggest_random_song(stats, mood="chill"):
         return top_tracks.iloc[0]  # Default to top
 
 def main():
-    st.title("🎵 Spotify Streaming Time Machine 🎵")
-    st.markdown("Dive into your 76k+ streams from 2019–2023. Total vibe time: ~1,768 hours! Let's make it even more epic. 🚀")
+    st.title("\u1f3b5 Spotify Streaming Time Machine \u1f3b5")
+    st.markdown("Dive into your 76k+ streams from 2019\u20132023. Total vibe time: ~1,768 hours! Let's make it even more epic. \u1f680")
    
     df = load_data()
     if df.empty:
@@ -129,16 +129,16 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
    
     # New Fun Feature: Random Fun Fact Button
-    if st.button("🎲 Drop a Random Fun Fact!"):
+    if st.button("\u1f3b2 Drop a Random Fun Fact!"):
         fact = get_random_fun_fact(filtered_stats)
         st.markdown(f'<div class="fun-fact">{fact}</div>', unsafe_allow_html=True)
    
     # New Interactive Feature
-    st.subheader("🕰️ Time Travel: Song Lookup")
-    tab1, tab2 = st.tabs(["Date/Time → Song", "Song → Play Times"])
+    st.subheader("\u1f570\ufe0f Time Travel: Song Lookup")
+    tab1, tab2 = st.tabs(["Date/Time \u2192 Song", "Song \u2192 Play Times"])
    
     with tab1:
-        st.markdown("Enter a date/time to find what was playing. Now with timezone magic! 🌍")
+        st.markdown("Enter a date/time to find what was playing. Now with timezone magic! \u1f30d")
         col_tz, col_date = st.columns([1, 2])
         with col_tz:
             timezone = st.selectbox("Your Timezone", options=list(pytz.all_timezones), index=list(pytz.all_timezones).index('UTC'), help="Select your local timezone for input.")
@@ -154,19 +154,19 @@ def main():
        
         if st.button("Find Song", key="find_song"):
             if filtered_df.empty:
-                st.markdown('<div class="warning-fun">🕰️ Time machine says: "No vibes in this era yet!" Adjust your date range for some retro hits. ⏳</div>', unsafe_allow_html=True)
+                st.markdown('<div class="warning-fun">\u1f570\ufe0f Time machine says: "No vibes in this era yet!" Adjust your date range for some retro hits. \u23f3</div>', unsafe_allow_html=True)
             else:
                 closest = find_song_by_datetime(filtered_df, target_dt_utc)
                 if closest is not None:
                     st.success(f"**{closest['track']}** by **{closest['artist']}** (Album: {closest['album']})")
                     st.info(f"Played: {closest['start_time']} to {closest['end_time']} ({closest['ms_played']/1000:.0f}s)")
                     if closest['skipped']:
-                        st.markdown('<div class="warning-fun">💨 Skipped faster than a plot twist! Whoopsie. 😏</div>', unsafe_allow_html=True)
+                        st.markdown('<div class="warning-fun">\u1f4a8 Skipped faster than a plot twist! Whoopsie. \u1f60f</div>', unsafe_allow_html=True)
                     col_img, col_uri = st.columns(2)
                     if pd.notna(closest.get('spotify_track_uri')):
                         col_uri.markdown(f"[Spotify Link]({closest['spotify_track_uri']})")
                 else:
-                    st.markdown('<div class="warning-fun">🔮 Crystal ball's cloudy: No streams near that cosmic moment. Try a different timestamp? ✨</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="warning-fun">\u1f52e Crystal ball\'s cloudy: No streams near that cosmic moment. Try a different timestamp? \u2728</div>', unsafe_allow_html=True)
    
     with tab2:
         st.markdown("Search for a song to see when you played it.")
@@ -176,37 +176,37 @@ def main():
         if st.button("Find Play Times", key="find_times") and track_input and artist_input:
             matches = find_times_by_song(filtered_df, track_input, artist_input)
             if not matches.empty:
-                st.success(f"Found {len(matches)} plays for '{track_input}' by '{artist_input}'. Time to reminisce! 💿")
+                st.success(f"Found {len(matches)} plays for '{track_input}' by '{artist_input}'. Time to reminisce! \u1f4bf")
                 fig = px.timeline(matches, x_start="end_time", x_end="end_time", y=matches.index,
                                   title="Play Timeline", hover_data=['ms_played', 'skipped'])
                 st.plotly_chart(fig, use_container_width=True)
                 st.dataframe(matches)
             else:
-                st.markdown('<div class="warning-fun">❓ Song not in your history? Maybe it's a future bop waiting to drop. Check the spelling, maestro! 🎼</div>', unsafe_allow_html=True)
+                st.markdown('<div class="warning-fun">\u2753 Song not in your history? Maybe it\'s a future bop waiting to drop. Check the spelling, maestro! \u1f3bc</div>', unsafe_allow_html=True)
    
-    # New Fun Feature: Mood-Based Suggestion
-    st.subheader("🎭 Mood Mixer: Random Rec")
+    # New Fun Feature: Mood Mixer: Random Rec
+    st.subheader("\u1f3ad Mood Mixer: Random Rec")
     mood = st.selectbox("Feeling?", options=["Chill Vibes", "Hype Mode", "Random Jam"])
-    if st.button("Suggest a Track! 🎶"):
+    if st.button("Suggest a Track! \u1f3b6"):
         suggestion = suggest_random_song(filtered_stats, mood.lower().replace(" ", "_"))
         st.balloons()  # Fun animation
-        st.success(f"Try this: **{suggestion['track']}** by **{suggestion['artist']}** – {suggestion['hours_played']:.1f} hrs of pure {mood.lower()} magic!")
+        st.success(f"Try this: **{suggestion['track']}** by **{suggestion['artist']}** \u2013 {suggestion['hours_played']:.1f} hrs of pure {mood.lower()} magic!")
    
     # Fun Facts (Enhanced)
-    st.subheader("🎉 Fun Facts")
+    st.subheader("\u1f389 Fun Facts")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown(f'<div class="fun-fact">Vibed {filtered_stats["total_hours"]:.0f} hrs – enough for {filtered_stats["total_hours"]/24:.1f} days of non-stop jams! 🥳</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="fun-fact">Vibed {filtered_stats["total_hours"]:.0f} hrs \u2013 enough for {filtered_stats["total_hours"]/24:.1f} days of non-stop jams! \u1f973</div>', unsafe_allow_html=True)
     with col2:
         if not filtered_stats['longest_session'].empty:
             longest_date = filtered_stats['longest_session']['date']
             longest_min = filtered_stats['longest_session']['ms_played'] / 60000
-            st.markdown(f'<div class="fun-fact">Epic marathon: {longest_date} with {longest_min:.0f} mins! Legend status unlocked. 🏆</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="fun-fact">Epic marathon: {longest_date} with {longest_min:.0f} mins! Legend status unlocked. \u1f3c6</div>', unsafe_allow_html=True)
     with col3:
-        st.markdown(f'<div class="fun-fact">Skipped {filtered_stats["skip_rate"]:.0f}% – You're the ultimate playlist surgeon! Scalpel? Nah, skip button. ⚕️</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="fun-fact">Skipped {filtered_stats["skip_rate"]:.0f}% \u2013 You\'re the ultimate playlist surgeon! Scalpel? Nah, skip button. \u2695\ufe0f</div>', unsafe_allow_html=True)
    
     # Visualizations (Added Heatmap Tab)
-    st.subheader("📊 Groove Charts")
+    st.subheader("\u1f4ca Groove Charts")
     tab_v1, tab_v2, tab_v3, tab_v4, tab_v5 = st.tabs(["Top Tracks", "Top Artists", "Monthly Vibes", "Platforms", "Listening Heatmap"])
    
     with tab_v1:
@@ -215,15 +215,15 @@ def main():
         st.plotly_chart(fig, use_container_width=True)
    
     with tab_v2:
-        fig = px.pie(filtered_stats['top_artists'], values='hours_played', names='artist', title="Artist Pie – Who's the MVP?")
+        fig = px.pie(filtered_stats['top_artists'], values='hours_played', names='artist', title="Artist Pie \u2013 Who's the MVP?")
         st.plotly_chart(fig, use_container_width=True)
    
     with tab_v3:
-        fig = px.line(filtered_stats['top_months'], x='month_year', y='hours_played', title="Peak Months – When You Peaked!")
+        fig = px.line(filtered_stats['top_months'], x='month_year', y='hours_played', title="Peak Months \u2013 When You Peaked!")
         st.plotly_chart(fig, use_container_width=True)
    
     with tab_v4:
-        fig = px.bar(filtered_stats['platform_usage'], title="Stream Spots – Mobile Mayhem or Desktop Dreams?")
+        fig = px.bar(filtered_stats['platform_usage'], title="Stream Spots \u2013 Mobile Mayhem or Desktop Dreams?")
         st.plotly_chart(fig, use_container_width=True)
    
     with tab_v5:
@@ -231,11 +231,11 @@ def main():
         heatmap_pivot = filtered_stats['heatmap_data'].pivot(index='hour', columns='day_of_week', values='ms_played').fillna(0)
         fig = px.imshow(heatmap_pivot, title="When Do You Groove? (Heatmap of Listening)", color_continuous_scale='plasma', aspect="auto")
         st.plotly_chart(fig, use_container_width=True)
-        st.caption("Hotter colors = More playtime. Spot your weekend warrior vibes? 🕺")
+        st.caption("Hotter colors = More playtime. Spot your weekend warrior vibes? \u1f57a")
    
     # Export
     csv = filtered_df.to_csv(index=False).encode('utf-8')
-    st.download_button("📥 Download Filtered CSV", csv, "filtered_spotify_history.csv", "text/csv")
+    st.download_button("\u1f4e5 Download Filtered CSV", csv, "filtered_spotify_history.csv", "text/csv")
    
     with st.expander("Data Preview"):
         st.dataframe(filtered_df.head(50))
