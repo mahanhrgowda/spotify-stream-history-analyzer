@@ -101,9 +101,9 @@ with tab1:
 
             # New fun feature: Emoji mood based on reason_start/end
             if 'fwdbtn' in row['reason_start'] or 'fwdbtn' in row['reason_end']:
-                st.emoji("⏩ You were skipping tracks – in a hurry?")
+                st.markdown("⏩ You were skipping tracks – in a hurry?")
             elif 'trackdone' in row['reason_end']:
-                st.emoji("✅ You listened to the end – true fan!")
+                st.markdown("✅ You listened to the end – true fan!")
         else:
             st.warning("No song was playing at that exact time. Maybe you were taking a break? 🎧")
             # Find nearest
@@ -213,7 +213,7 @@ with tab4:
         st.success(f"Time warp to {local_start}! You were listening to:")
         st.markdown(f"**Track:** {random_row['track']}")
         st.markdown(f"**Artist:** {random_row['artist']}")
-        st.confetti()  # New Streamlit 1.28+ feature, or use st.balloons()
+        st.balloons()
 
     # Fun feature 2: Music Time Machine Quiz
     st.subheader("Music Time Machine Quiz")
