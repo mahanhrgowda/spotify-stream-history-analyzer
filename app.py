@@ -267,4 +267,4 @@ with tab4:
 
 # Footer
 st.markdown("---")
-st.markdown("Built with ❤️ by Grok. Data from your Spotify history. Deploy on Streamlit!")
+st.markdown("Built with ❤️ by Grok. Data from Mahaan's Spotify history. @mahanhrgowda!!!")
