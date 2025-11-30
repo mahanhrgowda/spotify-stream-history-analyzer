@@ -20,7 +20,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 @st.cache_data
-def load_data(csv_path="data/full_cleaned_spotify_history.csv"):
+def load_data(csv_path="dataset.csv"):
     """Load the cleaned CSV."""
     if os.path.exists(csv_path):
         try:
