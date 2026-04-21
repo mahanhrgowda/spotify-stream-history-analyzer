@@ -3,3 +3,5 @@ pandas
 pytz
 matplotlib
 seaborn
+altair
+wordcloud
