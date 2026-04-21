@@ -14,10 +14,13 @@ import base64
 @st.cache_data
 def load_data():
     df = pd.read_csv('dataset.csv')
-    # Parse timestamps
-    df['start_time'] = pd.to_datetime(df['start_time'])
-    df['end_time'] = pd.to_datetime(df['end_time'])
-    df['date'] = pd.to_datetime(df['date']).dt.date
+
+    df['start_time'] = pd.to_datetime(df['start_time'], format='mixed', utc=True)
+    df['end_time'] = pd.to_datetime(df['end_time'], format='mixed', utc=True)
+    df['date'] = pd.to_datetime(df['date'], errors='coerce').dt.date
+
+    df = df.dropna(subset=['start_time', 'end_time'])
+
     return df
 
 df = load_data()
